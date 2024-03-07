@@ -58,7 +58,9 @@ public class GatewayApiController {
 
     @GetMapping("/list.json")
     @AuthAction(AuthService.PrivilegeType.READ_RULE)
-    public Result<List<ApiDefinitionEntity>> queryApis(String app, String ip, Integer port) {
+    public Result<List<ApiDefinitionEntity>> queryApis(@RequestParam(value = "app", required = false) String app,
+                                                       @RequestParam(value = "ip", required = false) String ip,
+                                                       @RequestParam(value = "port", required = false) Integer port) {
 
         if (StringUtil.isEmpty(app)) {
             return Result.ofFail(-1, "app can't be null or empty");
@@ -228,8 +230,7 @@ public class GatewayApiController {
 
     @PostMapping("/delete.json")
     @AuthAction(AuthService.PrivilegeType.DELETE_RULE)
-
-    public Result<Long> deleteApi(Long id) {
+    public Result<Long> deleteApi(@RequestParam(value = "id", required = false) Long id) {
         if (id == null) {
             return Result.ofFail(-1, "id can't be null");
         }

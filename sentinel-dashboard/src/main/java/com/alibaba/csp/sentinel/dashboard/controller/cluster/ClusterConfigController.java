@@ -117,9 +117,9 @@ public class ClusterConfigController {
     }
 
     @GetMapping("/state_single")
-    public Result<ClusterUniversalStateVO> apiGetClusterState(@RequestParam String app,
-                                                              @RequestParam String ip,
-                                                              @RequestParam Integer port) {
+    public Result<ClusterUniversalStateVO> apiGetClusterState(@RequestParam(value = "app", required = false) String app,
+                                                              @RequestParam(value = "ip", required = false) String ip,
+                                                              @RequestParam(value = "port", required = false) Integer port) {
         if (StringUtil.isEmpty(app)) {
             return Result.ofFail(-1, "app cannot be null or empty");
         }

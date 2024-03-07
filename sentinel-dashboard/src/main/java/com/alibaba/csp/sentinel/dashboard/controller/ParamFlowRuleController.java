@@ -81,9 +81,9 @@ public class ParamFlowRuleController {
 
     @GetMapping("/rules")
     @AuthAction(PrivilegeType.READ_RULE)
-    public Result<List<ParamFlowRuleEntity>> apiQueryAllRulesForMachine(@RequestParam String app,
-                                                                        @RequestParam String ip,
-                                                                        @RequestParam Integer port) {
+    public Result<List<ParamFlowRuleEntity>> apiQueryAllRulesForMachine(@RequestParam(value = "app", required = false) String app,
+                                                                        @RequestParam(value = "ip", required = false) String ip,
+                                                                        @RequestParam(value = "port", required = false) Integer port) {
         if (StringUtil.isEmpty(app)) {
             return Result.ofFail(-1, "app cannot be null or empty");
         }

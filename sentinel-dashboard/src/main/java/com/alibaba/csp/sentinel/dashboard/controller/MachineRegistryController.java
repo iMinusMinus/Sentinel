@@ -42,10 +42,13 @@ public class MachineRegistryController {
 
     @ResponseBody
     @RequestMapping("/machine")
-    public Result<?> receiveHeartBeat(String app,
-                                      @RequestParam(value = "app_type", required = false, defaultValue = "0")
-                                          Integer appType, Long version, String v, String hostname, String ip,
-                                      Integer port) {
+    public Result<?> receiveHeartBeat(@RequestParam(value = "app", required = false) String app,
+                                      @RequestParam(value = "app_type", required = false, defaultValue = "0") Integer appType,
+                                      @RequestParam(value = "version", required = false) Long version,
+                                      @RequestParam(value = "v", required = false) String v,
+                                      @RequestParam(value = "hostname", required = false) String hostname,
+                                      @RequestParam(value = "ip", required = false) String ip,
+                                      @RequestParam(value = "port", required = false) Integer port) {
         if (StringUtil.isBlank(app) || app.length() > 256) {
             return Result.ofFail(-1, "invalid appName");
         }

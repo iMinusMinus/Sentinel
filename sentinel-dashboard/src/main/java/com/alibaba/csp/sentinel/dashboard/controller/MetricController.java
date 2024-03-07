@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.alibaba.csp.sentinel.util.StringUtil;
@@ -55,11 +56,13 @@ public class MetricController {
 
     @ResponseBody
     @RequestMapping("/queryTopResourceMetric.json")
-    public Result<?> queryTopResourceMetric(final String app,
-                                            Integer pageIndex,
-                                            Integer pageSize,
-                                            Boolean desc,
-                                            Long startTime, Long endTime, String searchKey) {
+    public Result<?> queryTopResourceMetric(@RequestParam(value = "app", required = false) final String app,
+                                            @RequestParam(value = "pageIndex", required = false) Integer pageIndex,
+                                            @RequestParam(value = "pageSize", required = false) Integer pageSize,
+                                            @RequestParam(value = "desc", required = false) Boolean desc,
+                                            @RequestParam(value = "startTime", required = false) Long startTime,
+                                            @RequestParam(value = "endTime", required = false) Long endTime,
+                                            @RequestParam(value = "searchKey", required = false) String searchKey) {
         if (StringUtil.isEmpty(app)) {
             return Result.ofFail(-1, "app can't be null or empty");
         }
@@ -137,7 +140,10 @@ public class MetricController {
 
     @ResponseBody
     @RequestMapping("/queryByAppAndResource.json")
-    public Result<?> queryByAppAndResource(String app, String identity, Long startTime, Long endTime) {
+    public Result<?> queryByAppAndResource(@RequestParam(value = "app", required = false) String app,
+                                           @RequestParam(value = "identity", required = false) String identity,
+                                           @RequestParam(value = "startTime", required = false) Long startTime,
+                                           @RequestParam(value = "endTime", required = false) Long endTime) {
         if (StringUtil.isEmpty(app)) {
             return Result.ofFail(-1, "app can't be null or empty");
         }

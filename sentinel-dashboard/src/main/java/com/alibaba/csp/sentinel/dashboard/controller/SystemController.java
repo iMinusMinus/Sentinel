@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -73,8 +74,9 @@ public class SystemController {
 
     @GetMapping("/rules.json")
     @AuthAction(PrivilegeType.READ_RULE)
-    public Result<List<SystemRuleEntity>> apiQueryMachineRules(String app, String ip,
-                                                               Integer port) {
+    public Result<List<SystemRuleEntity>> apiQueryMachineRules(@RequestParam(value = "app", required = false) String app,
+                                                               @RequestParam(value = "ip", required = false) String ip,
+                                                               @RequestParam(value = "port", required = false) Integer port) {
         Result<List<SystemRuleEntity>> checkResult = checkBasicParams(app, ip, port);
         if (checkResult != null) {
             return checkResult;
@@ -101,9 +103,14 @@ public class SystemController {
 
     @RequestMapping("/new.json")
     @AuthAction(PrivilegeType.WRITE_RULE)
-    public Result<SystemRuleEntity> apiAdd(String app, String ip, Integer port,
-                                           Double highestSystemLoad, Double highestCpuUsage, Long avgRt,
-                                           Long maxThread, Double qps) {
+    public Result<SystemRuleEntity> apiAdd(@RequestParam(value = "app", required = false) String app,
+                                           @RequestParam(value = "ip", required = false) String ip,
+                                           @RequestParam(value = "port", required = false) Integer port,
+                                           @RequestParam(value = "highestSystemLoad", required = false) Double highestSystemLoad,
+                                           @RequestParam(value = "highestCpuUsage", required = false) Double highestCpuUsage,
+                                           @RequestParam(value = "avgRt", required = false) Long avgRt,
+                                           @RequestParam(value = "maxThread", required = false) Long maxThread,
+                                           @RequestParam(value = "qps", required = false) Double qps) {
 
         Result<SystemRuleEntity> checkResult = checkBasicParams(app, ip, port);
         if (checkResult != null) {
@@ -167,8 +174,13 @@ public class SystemController {
 
     @GetMapping("/save.json")
     @AuthAction(PrivilegeType.WRITE_RULE)
-    public Result<SystemRuleEntity> apiUpdateIfNotNull(Long id, String app, Double highestSystemLoad,
-            Double highestCpuUsage, Long avgRt, Long maxThread, Double qps) {
+    public Result<SystemRuleEntity> apiUpdateIfNotNull(@RequestParam(value = "id", required = false) Long id,
+                                                       @RequestParam(value = "app", required = false) String app,
+                                                       @RequestParam(value = "highestSystemLoad", required = false) Double highestSystemLoad,
+                                                       @RequestParam(value = "highestCpuUsage", required = false) Double highestCpuUsage,
+                                                       @RequestParam(value = "avgRt", required = false) Long avgRt,
+                                                       @RequestParam(value = "maxThread", required = false) Long maxThread,
+                                                       @RequestParam(value = "qps", required = false) Double qps) {
         if (id == null) {
             return Result.ofFail(-1, "id can't be null");
         }
@@ -229,7 +241,7 @@ public class SystemController {
 
     @RequestMapping("/delete.json")
     @AuthAction(PrivilegeType.DELETE_RULE)
-    public Result<?> delete(Long id) {
+    public Result<?> delete(@RequestParam(value = "id", required = false) Long id) {
         if (id == null) {
             return Result.ofFail(-1, "id can't be null");
         }

@@ -66,9 +66,9 @@ public class FlowControllerV1 {
 
     @GetMapping("/rules")
     @AuthAction(PrivilegeType.READ_RULE)
-    public Result<List<FlowRuleEntity>> apiQueryMachineRules(@RequestParam String app,
-                                                             @RequestParam String ip,
-                                                             @RequestParam Integer port) {
+    public Result<List<FlowRuleEntity>> apiQueryMachineRules(@RequestParam(value = "app", required = false) String app,
+                                                             @RequestParam(value = "ip", required = false) String ip,
+                                                             @RequestParam(value = "port", required = false) Integer port) {
         if (StringUtil.isEmpty(app)) {
             return Result.ofFail(-1, "app can't be null or empty");
         }
@@ -168,11 +168,17 @@ public class FlowControllerV1 {
 
     @PutMapping("/save.json")
     @AuthAction(PrivilegeType.WRITE_RULE)
-    public Result<FlowRuleEntity> apiUpdateFlowRule(Long id, String app,
-                                                  String limitApp, String resource, Integer grade,
-                                                  Double count, Integer strategy, String refResource,
-                                                  Integer controlBehavior, Integer warmUpPeriodSec,
-                                                  Integer maxQueueingTimeMs) {
+    public Result<FlowRuleEntity> apiUpdateFlowRule(@RequestParam(value = "id", required = false) Long id,
+                                                    @RequestParam(value = "app", required = false) String app,
+                                                    @RequestParam(value = "limitApp", required = false) String limitApp,
+                                                    @RequestParam(value = "resource", required = false) String resource,
+                                                    @RequestParam(value = "grade", required = false) Integer grade,
+                                                    @RequestParam(value = "count", required = false) Double count,
+                                                    @RequestParam(value = "strategy", required = false) Integer strategy,
+                                                    @RequestParam(value = "refResource", required = false) String refResource,
+                                                    @RequestParam(value = "controlBehavior", required = false) Integer controlBehavior,
+                                                    @RequestParam(value = "warmUpPeriodSec", required = false) Integer warmUpPeriodSec,
+                                                    @RequestParam(value = "maxQueueingTimeMs", required = false) Integer maxQueueingTimeMs) {
         if (id == null) {
             return Result.ofFail(-1, "id can't be null");
         }
@@ -248,7 +254,7 @@ public class FlowControllerV1 {
 
     @DeleteMapping("/delete.json")
     @AuthAction(PrivilegeType.WRITE_RULE)
-    public Result<Long> apiDeleteFlowRule(Long id) {
+    public Result<Long> apiDeleteFlowRule(@RequestParam(value = "id", required = false) Long id) {
 
         if (id == null) {
             return Result.ofFail(-1, "id can't be null");
