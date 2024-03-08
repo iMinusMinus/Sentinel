@@ -19,14 +19,12 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.SystemRuleEntity;
 
-import org.springframework.stereotype.Component;
-
 /**
  * @author leyou
  */
 public class InMemSystemRuleStore extends InMemoryRuleRepositoryAdapter<SystemRuleEntity> {
 
-    private static AtomicLong ids = new AtomicLong(0);
+    private static final AtomicLong ids = new AtomicLong(0);
 
     @Override
     protected long nextId() {

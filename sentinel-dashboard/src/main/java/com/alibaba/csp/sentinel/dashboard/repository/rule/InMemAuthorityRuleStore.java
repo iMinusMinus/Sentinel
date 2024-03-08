@@ -19,8 +19,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.AuthorityRuleEntity;
 
-import org.springframework.stereotype.Component;
-
 /**
  * In-memory storage for authority rules.
  *
@@ -29,7 +27,7 @@ import org.springframework.stereotype.Component;
  */
 public class InMemAuthorityRuleStore extends InMemoryRuleRepositoryAdapter<AuthorityRuleEntity> {
 
-    private static AtomicLong ids = new AtomicLong(0);
+    private static final AtomicLong ids = new AtomicLong(0);
 
     @Override
     protected long nextId() {
