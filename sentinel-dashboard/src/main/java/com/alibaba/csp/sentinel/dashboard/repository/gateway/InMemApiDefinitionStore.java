@@ -27,7 +27,6 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author cdfive
  * @since 1.7.0
  */
-@Component
 public class InMemApiDefinitionStore extends InMemoryRuleRepositoryAdapter<ApiDefinitionEntity> {
 
     private static AtomicLong ids = new AtomicLong(0);

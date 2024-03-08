@@ -26,7 +26,6 @@ import org.springframework.stereotype.Component;
  * @author Eric Zhao
  * @since 0.2.1
  */
-@Component
 public class InMemParamFlowRuleStore extends InMemoryRuleRepositoryAdapter<ParamFlowRuleEntity> {
 
     private static AtomicLong ids = new AtomicLong(0);

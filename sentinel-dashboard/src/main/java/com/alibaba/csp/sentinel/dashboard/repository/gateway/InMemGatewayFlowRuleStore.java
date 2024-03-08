@@ -27,7 +27,6 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author cdfive
  * @since 1.7.0
  */
-@Component
 public class InMemGatewayFlowRuleStore extends InMemoryRuleRepositoryAdapter<GatewayFlowRuleEntity> {
 
     private static AtomicLong ids = new AtomicLong(0);
