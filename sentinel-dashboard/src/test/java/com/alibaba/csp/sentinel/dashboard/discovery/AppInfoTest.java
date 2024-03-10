@@ -18,9 +18,12 @@ package com.alibaba.csp.sentinel.dashboard.discovery;
 import java.util.ConcurrentModificationException;
 import java.util.Set;
 
+import com.alibaba.csp.sentinel.dashboard.config.DashboardProperties;
 import org.junit.Test;
 
 import com.alibaba.csp.sentinel.dashboard.config.DashboardConfig;
+import org.mockito.Mockito;
+import org.springframework.context.ApplicationContext;
 
 import static org.junit.Assert.*;
 
@@ -58,11 +61,8 @@ public class AppInfoTest {
     }
 
     private MachineInfo genMachineInfo(String hostName, String ip) {
-        MachineInfo machine = new MachineInfo();
-        machine.setApp("testApp");
+        MachineInfo machine = MachineInfo.of("testApp", ip, 8719);
         machine.setHostname(hostName);
-        machine.setIp(ip);
-        machine.setPort(8719);
         machine.setVersion(String.valueOf(System.currentTimeMillis()));
         return machine;
     }
@@ -74,11 +74,8 @@ public class AppInfoTest {
         assertEquals(0, appInfo.getMachines().size());
         //add one
         {
-            MachineInfo machineInfo = new MachineInfo();
-            machineInfo.setApp("default");
+            MachineInfo machineInfo = MachineInfo.of("default", "127.0.0.1", 3389);
             machineInfo.setHostname("bogon");
-            machineInfo.setIp("127.0.0.1");
-            machineInfo.setPort(3389);
             machineInfo.setLastHeartbeat(System.currentTimeMillis());
             machineInfo.setHeartbeatVersion(1);
             machineInfo.setVersion("0.4.1");
@@ -87,11 +84,8 @@ public class AppInfoTest {
         assertEquals(1, appInfo.getMachines().size());
         //add duplicated one
         {
-            MachineInfo machineInfo = new MachineInfo();
-            machineInfo.setApp("default");
+            MachineInfo machineInfo = MachineInfo.of("default", "127.0.0.1", 3389);
             machineInfo.setHostname("bogon");
-            machineInfo.setIp("127.0.0.1");
-            machineInfo.setPort(3389);
             machineInfo.setLastHeartbeat(System.currentTimeMillis());
             machineInfo.setHeartbeatVersion(1);
             machineInfo.setVersion("0.4.2");
@@ -100,11 +94,8 @@ public class AppInfoTest {
         assertEquals(1, appInfo.getMachines().size());
         //add different one
         {
-            MachineInfo machineInfo = new MachineInfo();
-            machineInfo.setApp("default");
+            MachineInfo machineInfo = MachineInfo.of("default", "127.0.0.1", 3390);
             machineInfo.setHostname("bogon");
-            machineInfo.setIp("127.0.0.1");
-            machineInfo.setPort(3390);
             machineInfo.setLastHeartbeat(System.currentTimeMillis());
             machineInfo.setHeartbeatVersion(1);
             machineInfo.setVersion("0.4.3");
@@ -119,9 +110,15 @@ public class AppInfoTest {
 
     @Test
     public void testHealthyAndDead() {
-        System.setProperty(DashboardConfig.CONFIG_HIDE_APP_NO_MACHINE_MILLIS, "60000");
-        System.setProperty(DashboardConfig.CONFIG_REMOVE_APP_NO_MACHINE_MILLIS, "600000");
-        DashboardConfig.clearCache();
+        DashboardConfig dashboardConfig = new DashboardConfig();
+        ApplicationContext applicationContext = Mockito.mock(ApplicationContext.class);
+        DashboardProperties dashboardProperties = new DashboardProperties();
+        dashboardProperties.setRemoveAppNoMachineMillis(600000);
+        dashboardProperties.setApp(new DashboardProperties.AppConfig());
+        dashboardProperties.getApp().setHideAppNoMachineMillis(60000);
+        Mockito.when(applicationContext.getBean(DashboardProperties.class)).thenReturn(dashboardProperties);
+        dashboardConfig.setApplicationContext(applicationContext);
+
         String appName = "default";
         AppInfo appInfo = new AppInfo();
         appInfo.setApp(appName);

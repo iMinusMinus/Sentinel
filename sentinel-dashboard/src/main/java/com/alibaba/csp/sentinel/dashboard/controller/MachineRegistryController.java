@@ -72,12 +72,9 @@ public class MachineRegistryController {
 
         version = version == null ? System.currentTimeMillis() : version;
         try {
-            MachineInfo machineInfo = new MachineInfo();
-            machineInfo.setApp(app);
+            MachineInfo machineInfo = MachineInfo.of(app, ip, port);
             machineInfo.setAppType(appType);
             machineInfo.setHostname(hostname);
-            machineInfo.setIp(ip);
-            machineInfo.setPort(port);
             machineInfo.setHeartbeatVersion(version);
             machineInfo.setLastHeartbeat(System.currentTimeMillis());
             machineInfo.setVersion(sentinelVersion);

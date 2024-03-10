@@ -17,9 +17,12 @@ package com.alibaba.csp.sentinel.dashboard.discovery;
 
 import static org.junit.Assert.*;
 
+import com.alibaba.csp.sentinel.dashboard.config.DashboardProperties;
 import org.junit.Test;
 
 import com.alibaba.csp.sentinel.dashboard.config.DashboardConfig;
+import org.mockito.Mockito;
+import org.springframework.context.ApplicationContext;
 
 /**
  * @author Jason Joo
@@ -28,10 +31,15 @@ public class MachineInfoTest {
 
     @Test
     public void testHealthyAndDead() {
-        System.setProperty(DashboardConfig.CONFIG_UNHEALTHY_MACHINE_MILLIS, "60000");
-        System.setProperty(DashboardConfig.CONFIG_AUTO_REMOVE_MACHINE_MILLIS, "600000");
-        DashboardConfig.clearCache();
-        MachineInfo machineInfo = new MachineInfo();
+        DashboardConfig dashboardConfig = new DashboardConfig();
+        ApplicationContext applicationContext = Mockito.mock(ApplicationContext.class);
+        DashboardProperties dashboardProperties = new DashboardProperties();
+        dashboardProperties.setRemoveAppNoMachineMillis(600000);
+        dashboardProperties.setApp(new DashboardProperties.AppConfig());
+        dashboardProperties.getApp().setHideAppNoMachineMillis(60000);
+        Mockito.when(applicationContext.getBean(DashboardProperties.class)).thenReturn(dashboardProperties);
+        dashboardConfig.setApplicationContext(applicationContext);
+        MachineInfo machineInfo = MachineInfo.of("", "", -1);
         machineInfo.setHeartbeatVersion(1);
         machineInfo.setLastHeartbeat(System.currentTimeMillis() - 10000);
         assertTrue(machineInfo.isHealthy());

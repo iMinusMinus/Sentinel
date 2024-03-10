@@ -97,15 +97,10 @@ public class MachineEntity {
     }
 
     public MachineInfo toMachineInfo() {
-        MachineInfo machineInfo = new MachineInfo();
-
-        machineInfo.setApp(app);
+        MachineInfo machineInfo = MachineInfo.of(app, ip, port);
         machineInfo.setHostname(hostname);
-        machineInfo.setIp(ip);
-        machineInfo.setPort(port);
         machineInfo.setLastHeartbeat(timestamp.getTime());
         machineInfo.setHeartbeatVersion(timestamp.getTime());
-
         return machineInfo;
     }
 

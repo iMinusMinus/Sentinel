@@ -59,14 +59,12 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * Fetch metric of machines.
  *
  * @author leyou
  */
-@Component
 public class MetricFetcher {
 
     public static final String NO_METRICS = "No metrics";
@@ -75,25 +73,25 @@ public class MetricFetcher {
     private static final long FETCH_INTERVAL_SECOND = 6;
     private static final Charset DEFAULT_CHARSET = Charset.forName(SentinelConfig.charset());
     private final static String METRIC_URL_PATH = "metric";
-    private static Logger logger = LoggerFactory.getLogger(MetricFetcher.class);
+    private static final Logger logger = LoggerFactory.getLogger(MetricFetcher.class);
     private final long intervalSecond = 1;
 
-    private Map<String, AtomicLong> appLastFetchTime = new ConcurrentHashMap<>();
+    private final Map<String, AtomicLong> appLastFetchTime = new ConcurrentHashMap<>();
 
-    @Autowired
-    private MetricsRepository<MetricEntity> metricStore;
-    @Autowired
-    private AppManagement appManagement;
+    private final MetricsRepository<MetricEntity> metricStore;
+    private final AppManagement appManagement;
 
-    private CloseableHttpAsyncClient httpclient;
+    private final CloseableHttpAsyncClient httpclient;
 
     @SuppressWarnings("PMD.ThreadPoolCreationRule")
-    private ScheduledExecutorService fetchScheduleService = Executors.newScheduledThreadPool(1,
+    private final ScheduledExecutorService fetchScheduleService = Executors.newScheduledThreadPool(1,
         new NamedThreadFactory("sentinel-dashboard-metrics-fetch-task", true));
-    private ExecutorService fetchService;
-    private ExecutorService fetchWorker;
+    private final ExecutorService fetchService;
+    private final ExecutorService fetchWorker;
 
-    public MetricFetcher() {
+    public MetricFetcher(MetricsRepository<MetricEntity> metricStore, AppManagement appManagement) {
+        this.metricStore = metricStore;
+        this.appManagement = appManagement;
         int cores = Runtime.getRuntime().availableProcessors() * 2;
         long keepAliveTime = 0;
         int queueSize = 2048;

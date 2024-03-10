@@ -14,8 +14,11 @@
 
     <properties>
         <resource.delimiter>@</resource.delimiter>
-        <spring.boot.version>2.5.12</spring.boot.version>
+        <spring.boot.version>2.5.12</spring.boot.version><!-- spring.cloud.version: 3.0.6 -->
+        <eureka.version>1.10.17</eureka.version>
         <curator.version>4.0.1</curator.version>
+        <apollo.version>1.2.0</apollo.version>
+        <nacos.version>1.4.2</nacos.version>
     </properties>
 
     <dependencies>
@@ -47,6 +50,14 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
             <version>${spring.boot.version}</version>
+            <exclusions>
+                <!-- 2.12.6.1 -->
+                <!-- Caused by: java.lang.NoClassDefFoundError: com/fasterxml/jackson/annotation/JsonIncludeProperties -->
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-databind</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -97,18 +108,24 @@
             <artifactId>fastjson</artifactId>
         </dependency>
 
+        <!-- for eureka discovery -->
+        <dependency>
+            <groupId>com.netflix.eureka</groupId>
+            <artifactId>eureka-client</artifactId>
+            <version>${eureka.version}</version>
+        </dependency>
+
         <!-- for Nacos rule publisher sample -->
         <dependency>
-            <groupId>com.alibaba.csp</groupId>
-            <artifactId>sentinel-datasource-nacos</artifactId>
-            <scope>test</scope>
+            <groupId>com.alibaba.nacos</groupId>
+            <artifactId>nacos-client</artifactId>
+            <version>${nacos.version}</version>
         </dependency>
-        <!-- for Apollo rule publisher sample -->
+        <!-- for Apollo rule provider and publisher -->
         <dependency>
             <groupId>com.ctrip.framework.apollo</groupId>
             <artifactId>apollo-openapi</artifactId>
-            <version>1.2.0</version>
-            <scope>test</scope>
+            <version>${apollo.version}</version>
         </dependency>
 
         <!--for Zookeeper rule publisher sample-->

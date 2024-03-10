@@ -19,25 +19,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import javax.annotation.PostConstruct;
-
 import com.alibaba.csp.sentinel.util.StringUtil;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.stereotype.Component;
-
-@Component
 public class AppManagement implements MachineDiscovery {
 
-    @Autowired
-    private ApplicationContext context;
+    private final MachineDiscovery machineDiscovery;
 
-    private MachineDiscovery machineDiscovery;
-
-    @PostConstruct
-    public void init() {
-        machineDiscovery = context.getBean(SimpleMachineDiscovery.class);
+    public AppManagement(MachineDiscovery machineDiscovery) {
+        this.machineDiscovery = machineDiscovery;
     }
 
     @Override

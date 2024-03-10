@@ -23,20 +23,14 @@ import org.springframework.context.annotation.Configuration;
 
 import javax.servlet.http.HttpServletRequest;
 
-@Configuration
-@EnableConfigurationProperties(AuthProperties.class)
+@Configuration(proxyBeanMethods = false)
+@EnableConfigurationProperties(DashboardProperties.class)
 public class AuthConfiguration {
-
-    private final AuthProperties authProperties;
-
-    public AuthConfiguration(AuthProperties authProperties) {
-        this.authProperties = authProperties;
-    }
 
     @Bean
     @ConditionalOnMissingBean
-    public AuthService<HttpServletRequest> httpServletRequestAuthService() {
-        if (this.authProperties.isEnabled()) {
+    public AuthService<HttpServletRequest> httpServletRequestAuthService(DashboardProperties dashboardProperties) {
+        if (dashboardProperties.getAuth().isEnabled()) {
             return new SimpleWebAuthServiceImpl();
         }
         return new FakeAuthServiceImpl();

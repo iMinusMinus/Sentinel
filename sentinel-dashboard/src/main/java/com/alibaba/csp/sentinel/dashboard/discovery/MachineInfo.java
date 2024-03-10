@@ -22,11 +22,11 @@ import com.alibaba.csp.sentinel.util.StringUtil;
 
 public class MachineInfo implements Comparable<MachineInfo> {
 
-    private String app = "";
+    private final String app;
     private Integer appType = 0;
     private String hostname = "";
-    private String ip = "";
-    private Integer port = -1;
+    private final String ip;
+    private final Integer port;
     private long lastHeartbeat;
     private long heartbeatVersion;
 
@@ -35,12 +35,14 @@ public class MachineInfo implements Comparable<MachineInfo> {
      */
     private String version;
 
+    private MachineInfo(String app, String ip, Integer port) {
+        this.app = app;
+        this.ip = ip;
+        this.port = port;
+    }
+
     public static MachineInfo of(String app, String ip, Integer port) {
-        MachineInfo machineInfo = new MachineInfo();
-        machineInfo.setApp(app);
-        machineInfo.setIp(ip);
-        machineInfo.setPort(port);
-        return machineInfo;
+        return new MachineInfo(app, ip, port);
     }
 
     public String toHostPort() {
@@ -51,16 +53,8 @@ public class MachineInfo implements Comparable<MachineInfo> {
         return port;
     }
 
-    public void setPort(Integer port) {
-        this.port = port;
-    }
-
     public String getApp() {
         return app;
-    }
-
-    public void setApp(String app) {
-        this.app = app;
     }
 
     public Integer getAppType() {
@@ -81,10 +75,6 @@ public class MachineInfo implements Comparable<MachineInfo> {
 
     public String getIp() {
         return ip;
-    }
-
-    public void setIp(String ip) {
-        this.ip = ip;
     }
 
     public long getHeartbeatVersion() {

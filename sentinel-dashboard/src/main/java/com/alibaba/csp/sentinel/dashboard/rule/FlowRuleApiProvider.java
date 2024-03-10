@@ -26,19 +26,19 @@ import com.alibaba.csp.sentinel.util.StringUtil;
 
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.FlowRuleEntity;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 /**
  * @author Eric Zhao
  */
-@Component("flowRuleDefaultProvider")
 public class FlowRuleApiProvider implements DynamicRuleProvider<List<FlowRuleEntity>> {
 
-    @Autowired
-    private SentinelApiClient sentinelApiClient;
-    @Autowired
-    private AppManagement appManagement;
+    private final SentinelApiClient sentinelApiClient;
+
+    private final AppManagement appManagement;
+
+    public FlowRuleApiProvider(SentinelApiClient sentinelApiClient, AppManagement appManagement) {
+        this.sentinelApiClient = sentinelApiClient;
+        this.appManagement = appManagement;
+    }
 
     @Override
     public List<FlowRuleEntity> getRules(String appName) throws Exception {
