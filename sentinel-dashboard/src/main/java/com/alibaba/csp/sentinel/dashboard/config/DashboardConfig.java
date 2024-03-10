@@ -9,6 +9,7 @@ import com.alibaba.csp.sentinel.dashboard.discovery.NacosDiscovery;
 import com.alibaba.csp.sentinel.dashboard.discovery.SimpleMachineDiscovery;
 import com.alibaba.csp.sentinel.dashboard.repository.gateway.InMemApiDefinitionStore;
 import com.alibaba.csp.sentinel.dashboard.repository.gateway.InMemGatewayFlowRuleStore;
+import com.alibaba.csp.sentinel.dashboard.repository.metric.InMemoryMetricsRepository;
 import com.alibaba.csp.sentinel.dashboard.repository.rule.InMemAuthorityRuleStore;
 import com.alibaba.csp.sentinel.dashboard.repository.rule.InMemDegradeRuleStore;
 import com.alibaba.csp.sentinel.dashboard.repository.rule.InMemFlowRuleStore;
@@ -165,6 +166,12 @@ public class DashboardConfig implements ApplicationContextAware {
         @Bean
         public InMemSystemRuleStore systemRuleStore() {
             return new InMemSystemRuleStore();
+        }
+
+
+        @Bean
+        public InMemoryMetricsRepository metricsRepository() {
+            return new InMemoryMetricsRepository();
         }
     }
 

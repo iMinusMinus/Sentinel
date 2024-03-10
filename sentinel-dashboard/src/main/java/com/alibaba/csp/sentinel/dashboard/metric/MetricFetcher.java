@@ -58,7 +58,6 @@ import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Fetch metric of machines.
@@ -205,6 +204,7 @@ public class MetricFetcher {
                 unhealthy.incrementAndGet();
                 continue;
             }
+            // TODO
             final String url = "http://" + machine.getIp() + ":" + machine.getPort() + "/" + METRIC_URL_PATH
                 + "?startTime=" + startTime + "&endTime=" + endTime + "&refetch=" + false;
             final HttpGet httpGet = new HttpGet(url);
