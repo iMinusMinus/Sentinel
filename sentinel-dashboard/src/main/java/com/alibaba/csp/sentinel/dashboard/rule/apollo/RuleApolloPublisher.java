@@ -1,7 +1,7 @@
 package com.alibaba.csp.sentinel.dashboard.rule.apollo;
 
 import com.alibaba.csp.sentinel.dashboard.config.ApolloProperties;
-import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.FlowRuleEntity;
+import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.RuleEntity;
 import com.alibaba.csp.sentinel.dashboard.rule.DynamicRulePublisher;
 import com.alibaba.csp.sentinel.datasource.Converter;
 import com.ctrip.framework.apollo.openapi.client.ApolloOpenApiClient;
@@ -16,19 +16,19 @@ import java.util.function.Function;
  *
  * @author iMinusMinus
  */
-public class FlowRuleApolloPublisher implements DynamicRulePublisher<List<FlowRuleEntity>> {
+public class RuleApolloPublisher<E extends RuleEntity> implements DynamicRulePublisher<List<E>> {
 
     private final Function<String, String> appNameToAppId;
 
     private final ApolloOpenApiClient apolloOpenApiClient;
 
-    private final Converter<List<FlowRuleEntity>, String> converter;
+    private final Converter<List<E>, String> converter;
 
     private final ApolloProperties apolloProperties;
 
-    public FlowRuleApolloPublisher(Function<String, String> appNameToAppId,
-                                   Converter<List<FlowRuleEntity>, String> converter,
-                                   ApolloProperties apolloProperties) {
+    public RuleApolloPublisher(Function<String, String> appNameToAppId,
+                               Converter<List<E>, String> converter,
+                               ApolloProperties apolloProperties) {
         this.appNameToAppId = appNameToAppId;
         this.converter = converter;
         this.apolloProperties = apolloProperties;
@@ -41,7 +41,7 @@ public class FlowRuleApolloPublisher implements DynamicRulePublisher<List<FlowRu
     }
 
     @Override
-    public void publish(String app, List<FlowRuleEntity> rules) throws Exception {
+    public void publish(String app, List<E> rules) throws Exception {
         if (rules == null) {
             return;
         }

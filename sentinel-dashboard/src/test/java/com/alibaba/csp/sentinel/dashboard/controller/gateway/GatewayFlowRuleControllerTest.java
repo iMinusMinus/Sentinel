@@ -146,7 +146,7 @@ public class GatewayFlowRuleControllerTest {
 
         CompletableFuture<List<GatewayFlowRuleEntity>> completableFuture = mock(CompletableFuture.class);
         given(completableFuture.get()).willReturn(entities);
-        given(sentinelApiClient.fetchGatewayFlowRules(TEST_APP, TEST_IP, TEST_PORT)).willReturn(completableFuture);
+        given(sentinelApiClient.fetchGatewayFlowRulesAsync(TEST_APP, TEST_IP, TEST_PORT)).willReturn(completableFuture);
 
         MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.get(path);
         requestBuilder.param("app", TEST_APP);

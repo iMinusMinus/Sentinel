@@ -496,6 +496,16 @@ public class SentinelApiClient {
         }
     }
 
+    public List<ParamFlowRuleEntity> fetchParamFlowRulesOfMachine(String app, String ip, int port) {
+        List<ParamFlowRule> rules = fetchRules(ip, port, GET_PARAM_RULE_PATH, ParamFlowRule.class);
+        if (rules != null) {
+            return rules.stream().map(rule -> ParamFlowRuleEntity.fromParamFlowRule(app, ip, port, rule))
+                    .collect(Collectors.toList());
+        } else {
+            return null;
+        }
+    }
+
     /**
      * Fetch all parameter flow rules from provided machine.
      *
@@ -505,7 +515,7 @@ public class SentinelApiClient {
      * @return all retrieved parameter flow rules
      * @since 0.2.1
      */
-    public CompletableFuture<List<ParamFlowRuleEntity>> fetchParamFlowRulesOfMachine(String app, String ip, int port) {
+    public CompletableFuture<List<ParamFlowRuleEntity>> fetchParamFlowRulesOfMachineAsync(String app, String ip, int port) {
         try {
             AssertUtil.notEmpty(app, "Bad app name");
             AssertUtil.notEmpty(ip, "Bad machine IP");
@@ -593,7 +603,12 @@ public class SentinelApiClient {
         return setRules(app, ip, port, AUTHORITY_TYPE, rules);
     }
 
-    public CompletableFuture<Void> setParamFlowRuleOfMachine(String app, String ip, int port, List<ParamFlowRuleEntity> rules) {
+    public boolean setParamFlowRuleOfMachine(String app, String ip, int port, List<ParamFlowRuleEntity> rules) {
+        CompletableFuture<Void> future = setParamFlowRuleOfMachineAsync(app, ip, port, rules);
+        return !future.isCompletedExceptionally();
+    }
+
+    public CompletableFuture<Void> setParamFlowRuleOfMachineAsync(String app, String ip, int port, List<ParamFlowRuleEntity> rules) {
         if (rules == null) {
             return CompletableFuture.completedFuture(null);
         }
@@ -819,7 +834,16 @@ public class SentinelApiClient {
         }
     }
 
-    public CompletableFuture<List<GatewayFlowRuleEntity>> fetchGatewayFlowRules(String app, String ip, int port) {
+    public List<GatewayFlowRuleEntity> fetchGatewayFlowRules(String app, String ip, int port) {
+        try {
+            return fetchGatewayFlowRulesAsync(app, ip, port).get();
+        } catch (InterruptedException | ExecutionException e) {
+            logger.error("Error when fetching items from api: {} -> {}", FETCH_GATEWAY_FLOW_RULE_PATH, null, e);
+            return null;
+        }
+    }
+
+    public CompletableFuture<List<GatewayFlowRuleEntity>> fetchGatewayFlowRulesAsync(String app, String ip, int port) {
         if (StringUtil.isBlank(ip) || port <= 0) {
             return AsyncUtils.newFailedFuture(new IllegalArgumentException("Invalid parameter"));
         }

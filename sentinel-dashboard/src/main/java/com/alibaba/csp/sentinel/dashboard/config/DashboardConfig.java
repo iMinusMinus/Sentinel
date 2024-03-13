@@ -1,10 +1,16 @@
 package com.alibaba.csp.sentinel.dashboard.config;
 
 import com.alibaba.csp.sentinel.dashboard.client.SentinelApiClient;
+import com.alibaba.csp.sentinel.dashboard.datasource.entity.gateway.GatewayFlowRuleEntity;
+import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.AuthorityRuleEntity;
+import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.DegradeRuleEntity;
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.FlowRuleEntity;
+import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.ParamFlowRuleEntity;
+import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.SystemRuleEntity;
 import com.alibaba.csp.sentinel.dashboard.discovery.AppManagement;
 import com.alibaba.csp.sentinel.dashboard.discovery.EurekaDiscovery;
 import com.alibaba.csp.sentinel.dashboard.discovery.MachineDiscovery;
+import com.alibaba.csp.sentinel.dashboard.discovery.MachineInfo;
 import com.alibaba.csp.sentinel.dashboard.discovery.NacosDiscovery;
 import com.alibaba.csp.sentinel.dashboard.discovery.SimpleMachineDiscovery;
 import com.alibaba.csp.sentinel.dashboard.repository.gateway.InMemApiDefinitionStore;
@@ -17,12 +23,12 @@ import com.alibaba.csp.sentinel.dashboard.repository.rule.InMemParamFlowRuleStor
 import com.alibaba.csp.sentinel.dashboard.repository.rule.InMemSystemRuleStore;
 import com.alibaba.csp.sentinel.dashboard.rule.DynamicRuleProvider;
 import com.alibaba.csp.sentinel.dashboard.rule.DynamicRulePublisher;
-import com.alibaba.csp.sentinel.dashboard.rule.FlowRuleApiProvider;
-import com.alibaba.csp.sentinel.dashboard.rule.FlowRuleApiPublisher;
-import com.alibaba.csp.sentinel.dashboard.rule.apollo.FlowRuleApolloProvider;
-import com.alibaba.csp.sentinel.dashboard.rule.apollo.FlowRuleApolloPublisher;
-import com.alibaba.csp.sentinel.dashboard.rule.nacos.FlowRuleNacosProvider;
-import com.alibaba.csp.sentinel.dashboard.rule.nacos.FlowRuleNacosPublisher;
+import com.alibaba.csp.sentinel.dashboard.rule.RuleApiProvider;
+import com.alibaba.csp.sentinel.dashboard.rule.RuleApiPublisher;
+import com.alibaba.csp.sentinel.dashboard.rule.apollo.RuleApolloProvider;
+import com.alibaba.csp.sentinel.dashboard.rule.apollo.RuleApolloPublisher;
+import com.alibaba.csp.sentinel.dashboard.rule.nacos.RuleNacosProvider;
+import com.alibaba.csp.sentinel.dashboard.rule.nacos.RuleNacosPublisher;
 import com.alibaba.csp.sentinel.datasource.Converter;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.nacos.api.config.ConfigFactory;
@@ -78,6 +84,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
@@ -399,9 +406,56 @@ public class DashboardConfig implements ApplicationContextAware {
 
     @Bean
     @ConditionalOnMissingBean
+    public DynamicRuleProvider<List<AuthorityRuleEntity>> authorityRuleDefaultProvider(SentinelApiClient sentinelApiClient,
+                                                                                  AppManagement appManagement) {
+        Function<MachineInfo, List<AuthorityRuleEntity>> ruleFetcher =
+                (x) -> sentinelApiClient.fetchAuthorityRulesOfMachine(x.getApp(), x.getIp(), x.getPort());
+        return new RuleApiProvider(appManagement, ruleFetcher);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public DynamicRuleProvider<List<DegradeRuleEntity>> degradeRuleDefaultProvider(SentinelApiClient sentinelApiClient,
+                                                                                   AppManagement appManagement) {
+        Function<MachineInfo, List<DegradeRuleEntity>> ruleFetcher =
+                (x) -> sentinelApiClient.fetchDegradeRuleOfMachine(x.getApp(), x.getIp(), x.getPort());
+        return new RuleApiProvider(appManagement, ruleFetcher);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
     public DynamicRuleProvider<List<FlowRuleEntity>> flowRuleDefaultProvider(SentinelApiClient sentinelApiClient,
                                                                              AppManagement appManagement) {
-        return new FlowRuleApiProvider(sentinelApiClient, appManagement);
+        Function<MachineInfo, List<FlowRuleEntity>> ruleFetcher =
+                (x) -> sentinelApiClient.fetchFlowRuleOfMachine(x.getApp(), x.getIp(), x.getPort());
+        return new RuleApiProvider(appManagement, ruleFetcher);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public DynamicRuleProvider<List<GatewayFlowRuleEntity>> gatewayFlowRuleDefaultProvider(SentinelApiClient sentinelApiClient,
+                                                                                    AppManagement appManagement) {
+        Function<MachineInfo, List<GatewayFlowRuleEntity>> ruleFetcher =
+                (x) -> sentinelApiClient.fetchGatewayFlowRules(x.getApp(), x.getIp(), x.getPort());
+        return new RuleApiProvider(appManagement, ruleFetcher);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public DynamicRuleProvider<List<ParamFlowRuleEntity>> paramFlowRuleDefaultProvider(SentinelApiClient sentinelApiClient,
+                                                                                  AppManagement appManagement) {
+        Function<MachineInfo, List<ParamFlowRuleEntity>> ruleFetcher =
+                (x) -> sentinelApiClient.fetchParamFlowRulesOfMachine(x.getApp(), x.getIp(), x.getPort());
+        return new RuleApiProvider(appManagement, ruleFetcher);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public DynamicRuleProvider<List<SystemRuleEntity>> systemRuleDefaultProvider(SentinelApiClient sentinelApiClient,
+                                                                                    AppManagement appManagement) {
+        Function<MachineInfo, List<SystemRuleEntity>> ruleFetcher =
+                (x) -> sentinelApiClient.fetchSystemRuleOfMachine(x.getApp(), x.getIp(), x.getPort());
+        return new RuleApiProvider(appManagement, ruleFetcher);
     }
 
     @Configuration
@@ -415,17 +469,46 @@ public class DashboardConfig implements ApplicationContextAware {
         }
 
         @Bean
-        public Converter<String, List<FlowRuleEntity>> flowRuleEntityDecoder() {
-            return s -> JSON.parseArray(s, FlowRuleEntity.class);
+        public DynamicRuleProvider<List<AuthorityRuleEntity>> authorityRuleDefaultProvider(Function<String, String> appNameToAppId,
+                                                                                 ApolloProperties apolloProperties) {
+            Converter<String, List<FlowRuleEntity>> converter = s -> JSON.parseArray(s, FlowRuleEntity.class);
+            return new RuleApolloProvider(appNameToAppId, converter, apolloProperties);
+        }
+
+        @Bean
+        public DynamicRuleProvider<List<DegradeRuleEntity>> degradeRuleDefaultProvider(Function<String, String> appNameToAppId,
+                                                                                 ApolloProperties apolloProperties) {
+            Converter<String, List<DegradeRuleEntity>> converter = s -> JSON.parseArray(s, DegradeRuleEntity.class);
+            return new RuleApolloProvider(appNameToAppId, converter, apolloProperties);
         }
 
         @Bean
         public DynamicRuleProvider<List<FlowRuleEntity>> flowRuleDefaultProvider(Function<String, String> appNameToAppId,
-                                                                                 Converter<String, List<FlowRuleEntity>> converter,
                                                                                  ApolloProperties apolloProperties) {
-            return new FlowRuleApolloProvider(appNameToAppId, converter, apolloProperties);
+            Converter<String, List<FlowRuleEntity>> converter = s -> JSON.parseArray(s, FlowRuleEntity.class);
+            return new RuleApolloProvider(appNameToAppId, converter, apolloProperties);
         }
 
+        @Bean
+        public DynamicRuleProvider<List<GatewayFlowRuleEntity>> gatewayFlowRuleDefaultProvider(Function<String, String> appNameToAppId,
+                                                                                           ApolloProperties apolloProperties) {
+            Converter<String, List<GatewayFlowRuleEntity>> converter = s -> JSON.parseArray(s, GatewayFlowRuleEntity.class);
+            return new RuleApolloProvider(appNameToAppId, converter, apolloProperties);
+        }
+
+        @Bean
+        public DynamicRuleProvider<List<ParamFlowRuleEntity>> paramFlowRuleDefaultProvider(Function<String, String> appNameToAppId,
+                                                                                       ApolloProperties apolloProperties) {
+            Converter<String, List<ParamFlowRuleEntity>> converter = s -> JSON.parseArray(s, ParamFlowRuleEntity.class);
+            return new RuleApolloProvider(appNameToAppId, converter, apolloProperties);
+        }
+
+        @Bean
+        public DynamicRuleProvider<List<SystemRuleEntity>> systemRuleDefaultProvider(Function<String, String> appNameToAppId,
+                                                                                 ApolloProperties apolloProperties) {
+            Converter<String, List<SystemRuleEntity>> converter = s -> JSON.parseArray(s, SystemRuleEntity.class);
+            return new RuleApolloProvider(appNameToAppId, converter, apolloProperties);
+        }
     }
 
     @Configuration
@@ -450,19 +533,106 @@ public class DashboardConfig implements ApplicationContextAware {
         }
 
         @Bean
+        public DynamicRuleProvider<List<AuthorityRuleEntity>> authorityRuleDefaultProvider(Function<String, String> appNameToAppId,
+                                                                                           ConfigService configService,
+                                                                                           NacosProperties nacosProperties) {
+            Converter<String, List<FlowRuleEntity>> converter = s -> JSON.parseArray(s, FlowRuleEntity.class);
+            return new RuleNacosProvider(appNameToAppId, configService, converter, nacosProperties);
+        }
+
+        @Bean
+        public DynamicRuleProvider<List<DegradeRuleEntity>> degradeRuleDefaultProvider(Function<String, String> appNameToAppId,
+                                                                                       ConfigService configService,
+                                                                                       NacosProperties nacosProperties) {
+            Converter<String, List<DegradeRuleEntity>> converter = s -> JSON.parseArray(s, DegradeRuleEntity.class);
+            return new RuleNacosProvider(appNameToAppId, configService, converter, nacosProperties);
+        }
+
+        @Bean
         public DynamicRuleProvider<List<FlowRuleEntity>> flowRuleDefaultProvider(Function<String, String> appNameToAppId,
                                                                                  ConfigService configService,
-                                                                                 Converter<String, List<FlowRuleEntity>> converter,
                                                                                  NacosProperties nacosProperties) {
-            return new FlowRuleNacosProvider(appNameToAppId, configService, converter, nacosProperties);
+            Converter<String, List<FlowRuleEntity>> converter = s -> JSON.parseArray(s, FlowRuleEntity.class);
+            return new RuleNacosProvider(appNameToAppId, configService, converter, nacosProperties);
         }
+
+        @Bean
+        public DynamicRuleProvider<List<GatewayFlowRuleEntity>> gatewayFlowRuleDefaultProvider(Function<String, String> appNameToAppId,
+                                                                                               ConfigService configService,
+                                                                                               NacosProperties nacosProperties) {
+            Converter<String, List<GatewayFlowRuleEntity>> converter = s -> JSON.parseArray(s, GatewayFlowRuleEntity.class);
+            return new RuleNacosProvider(appNameToAppId, configService, converter, nacosProperties);
+        }
+
+        @Bean
+        public DynamicRuleProvider<List<ParamFlowRuleEntity>> paramFlowRuleDefaultProvider(Function<String, String> appNameToAppId,
+                                                                                           ConfigService configService,
+                                                                                           NacosProperties nacosProperties) {
+            Converter<String, List<ParamFlowRuleEntity>> converter = s -> JSON.parseArray(s, ParamFlowRuleEntity.class);
+            return new RuleNacosProvider(appNameToAppId, configService, converter, nacosProperties);
+        }
+
+        @Bean
+        public DynamicRuleProvider<List<SystemRuleEntity>> systemRuleDefaultProvider(Function<String, String> appNameToAppId,
+                                                                                     ConfigService configService,
+                                                                                     NacosProperties nacosProperties) {
+            Converter<String, List<SystemRuleEntity>> converter = s -> JSON.parseArray(s, SystemRuleEntity.class);
+            return new RuleNacosProvider(appNameToAppId, configService, converter, nacosProperties);
+        }
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public DynamicRulePublisher<List<AuthorityRuleEntity>> authorityRuleDefaultPublisher(SentinelApiClient sentinelApiClient,
+                                                                               AppManagement appManagement) {
+        BiFunction<MachineInfo, List<AuthorityRuleEntity>, Boolean> function =
+                (machine, rules) -> sentinelApiClient.setAuthorityRuleOfMachine(machine.getApp(), machine.getIp(), machine.getPort(), rules);
+        return new RuleApiPublisher(appManagement, function);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public DynamicRulePublisher<List<DegradeRuleEntity>> degradeRuleDefaultPublisher(SentinelApiClient sentinelApiClient,
+                                                                               AppManagement appManagement) {
+        BiFunction<MachineInfo, List<DegradeRuleEntity>, Boolean> function =
+                (machine, rules) -> sentinelApiClient.setDegradeRuleOfMachine(machine.getApp(), machine.getIp(), machine.getPort(), rules);
+        return new RuleApiPublisher(appManagement, function);
     }
 
     @Bean
     @ConditionalOnMissingBean
     public DynamicRulePublisher<List<FlowRuleEntity>> flowRuleDefaultPublisher(SentinelApiClient sentinelApiClient,
                                                                                AppManagement appManagement) {
-        return new FlowRuleApiPublisher(sentinelApiClient, appManagement);
+        BiFunction<MachineInfo, List<FlowRuleEntity>, Boolean> function =
+                (machine, rules) -> sentinelApiClient.setFlowRuleOfMachine(machine.getApp(), machine.getIp(), machine.getPort(), rules);
+        return new RuleApiPublisher(appManagement, function);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public DynamicRulePublisher<List<GatewayFlowRuleEntity>> gatewayFlowRuleDefaultPublisher(SentinelApiClient sentinelApiClient,
+                                                                               AppManagement appManagement) {
+        BiFunction<MachineInfo, List<GatewayFlowRuleEntity>, Boolean> function =
+                (machine, rules) -> sentinelApiClient.modifyGatewayFlowRules(machine.getApp(), machine.getIp(), machine.getPort(), rules);
+        return new RuleApiPublisher(appManagement, function);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public DynamicRulePublisher<List<ParamFlowRuleEntity>> paramFlowRuleDefaultPublisher(SentinelApiClient sentinelApiClient,
+                                                                               AppManagement appManagement) {
+        BiFunction<MachineInfo, List<ParamFlowRuleEntity>, Boolean> function =
+                (machine, rules) -> sentinelApiClient.setParamFlowRuleOfMachine(machine.getApp(), machine.getIp(), machine.getPort(), rules);
+        return new RuleApiPublisher(appManagement, function);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public DynamicRulePublisher<List<SystemRuleEntity>> systemRuleDefaultPublisher(SentinelApiClient sentinelApiClient,
+                                                                               AppManagement appManagement) {
+        BiFunction<MachineInfo, List<SystemRuleEntity>, Boolean> function =
+                (machine, rules) -> sentinelApiClient.setSystemRuleOfMachine(machine.getApp(), machine.getIp(), machine.getPort(), rules);
+        return new RuleApiPublisher(appManagement, function);
     }
 
     @Configuration
@@ -476,15 +646,39 @@ public class DashboardConfig implements ApplicationContextAware {
         }
 
         @Bean
-        public Converter<List<FlowRuleEntity>, String> flowRuleEntityEncoder() {
-            return JSON::toJSONString;
+        public DynamicRulePublisher<List<AuthorityRuleEntity>> authorityRuleDefaultPublisher(Function<String, String> appNameToAppId,
+                                                                                   ApolloProperties apolloProperties) {
+            return new RuleApolloPublisher(appNameToAppId, JSON::toJSONString, apolloProperties);
+        }
+
+        @Bean
+        public DynamicRulePublisher<List<DegradeRuleEntity>> degradeRuleDefaultPublisher(Function<String, String> appNameToAppId,
+                                                                                   ApolloProperties apolloProperties) {
+            return new RuleApolloPublisher(appNameToAppId, JSON::toJSONString, apolloProperties);
         }
 
         @Bean
         public DynamicRulePublisher<List<FlowRuleEntity>> flowRuleDefaultPublisher(Function<String, String> appNameToAppId,
-                                                                                   Converter<List<FlowRuleEntity>, String> converter,
                                                                                    ApolloProperties apolloProperties) {
-            return new FlowRuleApolloPublisher(appNameToAppId, converter, apolloProperties);
+            return new RuleApolloPublisher(appNameToAppId, JSON::toJSONString, apolloProperties);
+        }
+
+        @Bean
+        public DynamicRulePublisher<List<GatewayFlowRuleEntity>> gatewayFlowRuleDefaultPublisher(Function<String, String> appNameToAppId,
+                                                                                             ApolloProperties apolloProperties) {
+            return new RuleApolloPublisher(appNameToAppId, JSON::toJSONString, apolloProperties);
+        }
+
+        @Bean
+        public DynamicRulePublisher<List<ParamFlowRuleEntity>> paramFlowRuleDefaultPublisher(Function<String, String> appNameToAppId,
+                                                                                         ApolloProperties apolloProperties) {
+            return new RuleApolloPublisher(appNameToAppId, JSON::toJSONString, apolloProperties);
+        }
+
+        @Bean
+        public DynamicRulePublisher<List<SystemRuleEntity>> systemRuleDefaultPublisher(Function<String, String> appNameToAppId,
+                                                                                   ApolloProperties apolloProperties) {
+            return new RuleApolloPublisher(appNameToAppId, JSON::toJSONString, apolloProperties);
         }
     }
 
@@ -498,11 +692,6 @@ public class DashboardConfig implements ApplicationContextAware {
             return Function.identity();
         }
 
-        @Bean
-        public Converter<List<FlowRuleEntity>, String> flowRuleEntityEncoder() {
-            return JSON::toJSONString;
-        }
-
         @Bean(destroyMethod = "shutDown")
         @ConditionalOnMissingBean
         public ConfigService configService(NacosProperties nacosProperties) throws Exception {
@@ -510,11 +699,45 @@ public class DashboardConfig implements ApplicationContextAware {
         }
 
         @Bean
+        public DynamicRulePublisher<List<AuthorityRuleEntity>> authorityRuleDefaultPublisher(Function<String, String> appNameToAppId,
+                                                                                   ConfigService configService,
+                                                                                   NacosProperties nacosProperties) {
+            return new RuleNacosPublisher(appNameToAppId, configService, JSON::toJSONString, nacosProperties);
+        }
+
+        @Bean
+        public DynamicRulePublisher<List<DegradeRuleEntity>> degradeRuleDefaultPublisher(Function<String, String> appNameToAppId,
+                                                                                   ConfigService configService,
+                                                                                   NacosProperties nacosProperties) {
+            return new RuleNacosPublisher(appNameToAppId, configService, JSON::toJSONString, nacosProperties);
+        }
+
+        @Bean
         public DynamicRulePublisher<List<FlowRuleEntity>> flowRuleDefaultPublisher(Function<String, String> appNameToAppId,
                                                                                    ConfigService configService,
-                                                                                   Converter<List<FlowRuleEntity>, String> converter,
                                                                                    NacosProperties nacosProperties) {
-            return new FlowRuleNacosPublisher(appNameToAppId, configService, converter, nacosProperties);
+            return new RuleNacosPublisher(appNameToAppId, configService, JSON::toJSONString, nacosProperties);
+        }
+
+        @Bean
+        public DynamicRulePublisher<List<GatewayFlowRuleEntity>> gatewayFlowRuleDefaultPublisher(Function<String, String> appNameToAppId,
+                                                                                             ConfigService configService,
+                                                                                             NacosProperties nacosProperties) {
+            return new RuleNacosPublisher(appNameToAppId, configService, JSON::toJSONString, nacosProperties);
+        }
+
+        @Bean
+        public DynamicRulePublisher<List<ParamFlowRuleEntity>> paramFlowRuleDefaultPublisher(Function<String, String> appNameToAppId,
+                                                                                         ConfigService configService,
+                                                                                         NacosProperties nacosProperties) {
+            return new RuleNacosPublisher(appNameToAppId, configService, JSON::toJSONString, nacosProperties);
+        }
+
+        @Bean
+        public DynamicRulePublisher<List<SystemRuleEntity>> systemRuleDefaultPublisher(Function<String, String> appNameToAppId,
+                                                                                   ConfigService configService,
+                                                                                   NacosProperties nacosProperties) {
+            return new RuleNacosPublisher(appNameToAppId, configService, JSON::toJSONString, nacosProperties);
         }
     }
 

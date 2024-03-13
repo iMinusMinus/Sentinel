@@ -17,31 +17,30 @@ package com.alibaba.csp.sentinel.dashboard.rule;
 
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiFunction;
 
-import com.alibaba.csp.sentinel.dashboard.client.SentinelApiClient;
+import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.RuleEntity;
 import com.alibaba.csp.sentinel.dashboard.discovery.AppManagement;
 import com.alibaba.csp.sentinel.dashboard.discovery.MachineInfo;
 import com.alibaba.csp.sentinel.util.StringUtil;
-
-import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.FlowRuleEntity;
 
 /**
  * @author Eric Zhao
  * @since 1.4.0
  */
-public class FlowRuleApiPublisher implements DynamicRulePublisher<List<FlowRuleEntity>> {
-
-    private final SentinelApiClient sentinelApiClient;
+public class RuleApiPublisher<E extends RuleEntity> implements DynamicRulePublisher<List<E>> {
 
     private final AppManagement appManagement;
 
-    public FlowRuleApiPublisher(SentinelApiClient sentinelApiClient, AppManagement appManagement) {
-        this.sentinelApiClient = sentinelApiClient;
+    private final BiFunction<MachineInfo, List<E>, Boolean> function;
+
+    public RuleApiPublisher(AppManagement appManagement, BiFunction<MachineInfo, List<E>, Boolean> function) {
         this.appManagement = appManagement;
+        this.function = function;
     }
 
     @Override
-    public void publish(String app, List<FlowRuleEntity> rules) throws Exception {
+    public void publish(String app, List<E> rules) throws Exception {
         if (StringUtil.isBlank(app)) {
             return;
         }
@@ -54,8 +53,7 @@ public class FlowRuleApiPublisher implements DynamicRulePublisher<List<FlowRuleE
             if (!machine.isHealthy()) {
                 continue;
             }
-            // TODO: parse the results
-            sentinelApiClient.setFlowRuleOfMachine(app, machine.getIp(), machine.getPort(), rules);
+            function.apply(machine, rules);
         }
     }
 }

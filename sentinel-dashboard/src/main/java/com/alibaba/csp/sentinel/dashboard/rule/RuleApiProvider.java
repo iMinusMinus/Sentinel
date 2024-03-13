@@ -17,31 +17,30 @@ package com.alibaba.csp.sentinel.dashboard.rule;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import com.alibaba.csp.sentinel.dashboard.client.SentinelApiClient;
+import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.RuleEntity;
 import com.alibaba.csp.sentinel.dashboard.discovery.AppManagement;
 import com.alibaba.csp.sentinel.dashboard.discovery.MachineInfo;
 import com.alibaba.csp.sentinel.util.StringUtil;
 
-import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.FlowRuleEntity;
-
 /**
  * @author Eric Zhao
  */
-public class FlowRuleApiProvider implements DynamicRuleProvider<List<FlowRuleEntity>> {
-
-    private final SentinelApiClient sentinelApiClient;
+public class RuleApiProvider<E extends RuleEntity> implements DynamicRuleProvider<List<E>> {
 
     private final AppManagement appManagement;
 
-    public FlowRuleApiProvider(SentinelApiClient sentinelApiClient, AppManagement appManagement) {
-        this.sentinelApiClient = sentinelApiClient;
+    private final Function<MachineInfo, List<E>> ruleFetcher;
+
+    public RuleApiProvider(AppManagement appManagement, Function<MachineInfo, List<E>> ruleFetcher) {
         this.appManagement = appManagement;
+        this.ruleFetcher = ruleFetcher;
     }
 
     @Override
-    public List<FlowRuleEntity> getRules(String appName) throws Exception {
+    public List<E> getRules(String appName) throws Exception {
         if (StringUtil.isBlank(appName)) {
             return new ArrayList<>();
         }
@@ -52,8 +51,7 @@ public class FlowRuleApiProvider implements DynamicRuleProvider<List<FlowRuleEnt
         if (list.isEmpty()) {
             return new ArrayList<>();
         } else {
-            MachineInfo machine = list.get(0);
-            return sentinelApiClient.fetchFlowRuleOfMachine(machine.getApp(), machine.getIp(), machine.getPort());
+            return ruleFetcher.apply(list.get(0));
         }
     }
 }

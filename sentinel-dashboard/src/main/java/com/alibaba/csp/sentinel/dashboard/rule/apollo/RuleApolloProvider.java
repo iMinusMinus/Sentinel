@@ -1,7 +1,7 @@
 package com.alibaba.csp.sentinel.dashboard.rule.apollo;
 
 import com.alibaba.csp.sentinel.dashboard.config.ApolloProperties;
-import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.FlowRuleEntity;
+import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.RuleEntity;
 import com.alibaba.csp.sentinel.dashboard.rule.DynamicRuleProvider;
 import com.alibaba.csp.sentinel.datasource.Converter;
 import com.alibaba.csp.sentinel.util.StringUtil;
@@ -18,19 +18,19 @@ import java.util.function.Function;
  *
  * @author iMinusMinus
  */
-public class FlowRuleApolloProvider implements DynamicRuleProvider<List<FlowRuleEntity>> {
+public class RuleApolloProvider<E extends RuleEntity> implements DynamicRuleProvider<List<E>> {
 
     private final Function<String, String> appNameToAppId;
 
     private final ApolloOpenApiClient apolloOpenApiClient;
 
-    private final Converter<String, List<FlowRuleEntity>> converter;
+    private final Converter<String, List<E>> converter;
 
     private final ApolloProperties apolloProperties;
 
-    public FlowRuleApolloProvider(Function<String, String> appNameToAppId,
-                                  Converter<String, List<FlowRuleEntity>> converter,
-                                  ApolloProperties apolloProperties) {
+    public RuleApolloProvider(Function<String, String> appNameToAppId,
+                              Converter<String, List<E>> converter,
+                              ApolloProperties apolloProperties) {
         this.appNameToAppId = appNameToAppId;
         this.converter = converter;
         this.apolloProperties = apolloProperties;
@@ -43,7 +43,7 @@ public class FlowRuleApolloProvider implements DynamicRuleProvider<List<FlowRule
     }
 
     @Override
-    public List<FlowRuleEntity> getRules(String appName) throws Exception {
+    public List<E> getRules(String appName) throws Exception {
         String appId = appNameToAppId.apply(appName);
         String flowDataId = ApolloConfigUtil.formatKey(apolloProperties.isSameAppId(), appId, apolloProperties.getFlowKey());
         OpenNamespaceDTO openNamespaceDTO = apolloOpenApiClient.getNamespace(appId, apolloProperties.getEnv(),
